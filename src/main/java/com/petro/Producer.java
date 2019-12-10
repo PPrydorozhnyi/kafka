@@ -3,9 +3,11 @@ package com.petro;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class Producer {
@@ -32,6 +34,44 @@ public class Producer {
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, serializer);
 
         return properties;
+    }
+
+    public void put(String topic, String key, String value) throws ExecutionException, InterruptedException {
+
+        log.info("Put value {} for key {}", value, key);
+
+        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
+
+        kafkaProducer.send(record, (recordMetadata, e) -> {
+            if (e != null) {
+                log.error("Error while producing", e);
+            }
+
+            log.info(String.format("Received ne metadata.\n" +
+                    "Topic: %s\n" +
+                    "Partition: %d\n" +
+                    "Offset: %d\n" +
+                    "Timestamp: %d",
+                    recordMetadata.topic(), recordMetadata.partition(), recordMetadata.offset(), recordMetadata.timestamp()
+            ));
+
+        }).get();
+    }
+
+    public void close() {
+        log.info("Closing producer`s connection");
+        kafkaProducer.close();
+    }
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        String server = "localhost:9092";
+        String topic = "users";
+
+        Producer producer = new Producer(server);
+        producer.put(topic, "user1", "Petro");
+        producer.put(topic, "user2", "Yarik");
+        producer.put(topic, "user3", "Vadim");
+        producer.close();
     }
 
 }
