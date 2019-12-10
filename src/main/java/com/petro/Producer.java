@@ -22,7 +22,7 @@ public class Producer {
     }
 
     /**
-     * @param bootstrapServer an IP of our Kafka broker
+     * @param bootstrapServer an address of our Kafka broker
      * @return properties for our producer
      */
     private Properties producerProperties(String bootstrapServer) {
@@ -64,10 +64,10 @@ public class Producer {
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        String server = "localhost:9092";
+        String serverBroker = "localhost:9092";
         String topic = "users";
 
-        Producer producer = new Producer(server);
+        Producer producer = new Producer(serverBroker);
         producer.put(topic, "user1", "Petro");
         producer.put(topic, "user2", "Yarik");
         producer.put(topic, "user3", "Vadim");
